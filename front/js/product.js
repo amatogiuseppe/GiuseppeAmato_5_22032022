@@ -1,15 +1,20 @@
-/*
-  ========================================
-  Inserting product information
-  ========================================
-*/
+//================================================================================
+//  Product data table
+//================================================================================
 
-// Product data table
 const imageBox = document.querySelector(".item__img");
 const productTitle = document.querySelector("#title");
 const productPrice = document.querySelector("#price");
 const productDescription = document.querySelector("#description");
 const productColors = document.querySelector("#colors");
+const productQuantity = document.querySelector("#quantity");
+const addToCartButton = document.querySelector("#addToCart");
+const boxButton = document.querySelector(".item__content__addButton");
+
+
+//================================================================================
+//  Inserting product information
+//================================================================================
 
 // Getting the product id
 const productURL = new URLSearchParams(window.location.search);
@@ -45,3 +50,34 @@ fetch(`http://localhost:3000/api/products/${productId}`)
     alert("Oups ! Veuillez nous excuser mais ce produit n'est pas disponible actuellement");
     productTitle.textContent = "Produit non disponible";
   });
+
+
+//================================================================================
+//  Adding the product to the cart
+//================================================================================
+
+// Linking the button to the cart page
+const anchorButton = document.createElement("a");
+boxButton.appendChild(anchorButton);
+anchorButton.appendChild(addToCartButton);
+anchorButton.setAttribute('href', `./cart.html`);
+
+
+// Saving the custom selection using LocalStorage
+addToCartButton.addEventListener('click', function() {
+  if (productQuantity.value == '0'){
+    alert("Veuillez indiquer le nombre d'articles")
+  } else {
+    if (productColors.value == ''){
+      alert("Veuillez choisir la couleur de l'article")
+    } else {
+      let objJson = {
+        id : `${productId}`,
+        quantity : `${productQuantity.value}`,
+        color : `${productColors.value}`
+      }
+      let objLine = JSON.stringify(objJson);
+      localStorage.setItem("obj", objLine);
+    }
+  }
+});
