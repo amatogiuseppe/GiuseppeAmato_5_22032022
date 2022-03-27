@@ -62,7 +62,6 @@ boxButton.appendChild(anchorButton);
 anchorButton.appendChild(addToCartButton);
 anchorButton.setAttribute('href', `./cart.html`);
 
-
 // Saving the custom selection using LocalStorage
 addToCartButton.addEventListener('click', function() {
   if (productQuantity.value == '0'){
@@ -71,13 +70,22 @@ addToCartButton.addEventListener('click', function() {
     if (productColors.value == ''){
       alert("Veuillez choisir la couleur de l'article")
     } else {
-      let objJson = {
-        id : `${productId}`,
-        quantity : `${productQuantity.value}`,
-        color : `${productColors.value}`
+      let productToPurchase = {
+        id : productId,
+        quantity : parseInt(productQuantity.value),
+        color : productColors.value
       }
-      let objLine = JSON.stringify(objJson);
-      localStorage.setItem("obj", objLine);
+      // (Checking if the product is already in the cart)
+      let productsInTheCart = JSON.parse(localStorage.getItem('productsInTheCart')) || [];
+      for (i = 0; i < productsInTheCart.length; i++) {
+        if(productsInTheCart[i].id == productToPurchase.id && productsInTheCart[i].color == productToPurchase.color) {
+          productToPurchase.quantity += productsInTheCart[i].quantity;
+          productsInTheCart.splice(i, 1);
+          break;
+        }
+      }
+      productsInTheCart.push(productToPurchase);
+      localStorage.setItem('productsInTheCart', JSON.stringify(productsInTheCart));
     }
   }
 });

@@ -1,3 +1,8 @@
-let objLine = localStorage.getItem("obj");
+//================================================================================
+//  Recovering data product
+//================================================================================
+
+let objLine = localStorage.getItem("productsInTheCart");
 let objJson = JSON.parse(objLine);
-console.log(objLine);
+console.log(objJson);
+
