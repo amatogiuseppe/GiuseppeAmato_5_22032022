@@ -53,39 +53,41 @@ fetch(`http://localhost:3000/api/products/${productId}`)
 
 
 //================================================================================
-//  Adding the product to the cart
+//  Adding product to cart using LocalStorage
 //================================================================================
 
-// Linking the button to the cart page
-const anchorButton = document.createElement("a");
-boxButton.appendChild(anchorButton);
-anchorButton.appendChild(addToCartButton);
-anchorButton.setAttribute('href', `./cart.html`);
-
-// Saving the custom selection using LocalStorage
 addToCartButton.addEventListener('click', function() {
   if (productQuantity.value == '0'){
     alert("Veuillez indiquer le nombre d'articles")
   } else {
     if (productColors.value == ''){
       alert("Veuillez choisir la couleur de l'article")
-    } else {
+    }
+    else {
       let productToPurchase = {
         id : productId,
         quantity : parseInt(productQuantity.value),
         color : productColors.value
       }
-      // (Checking if the product is already in the cart)
-      let productsInTheCart = JSON.parse(localStorage.getItem('productsInTheCart')) || [];
-      for (i = 0; i < productsInTheCart.length; i++) {
-        if(productsInTheCart[i].id == productToPurchase.id && productsInTheCart[i].color == productToPurchase.color) {
-          productToPurchase.quantity += productsInTheCart[i].quantity;
-          productsInTheCart.splice(i, 1);
+      // Checking if the product is already in the cart:
+      // in this case, the quantity of the product in the cart should be increased
+      let cartProducts = JSON.parse(localStorage.getItem('cartProducts')) || [];
+      for (i = 0; i < cartProducts.length; i++) {
+        if(cartProducts[i].id == productToPurchase.id && cartProducts[i].color == productToPurchase.color) {
+          productToPurchase.quantity += cartProducts[i].quantity;
+          cartProducts.splice(i, 1);
           break;
         }
       }
-      productsInTheCart.push(productToPurchase);
-      localStorage.setItem('productsInTheCart', JSON.stringify(productsInTheCart));
+      cartProducts.push(productToPurchase);
+      localStorage.setItem('cartProducts', JSON.stringify(cartProducts));
+      // Visible notification that the product has been added
+      addToCartButton.textContent = "AJOUTÉ !";
+      addToCartButton.style.backgroundColor = "#28a745";
+      setTimeout(function() {
+        addToCartButton.textContent = "Ajouter au panier";
+        addToCartButton.style.backgroundColor = "#2c3e50";
+      }, 1000);
     }
   }
 });
