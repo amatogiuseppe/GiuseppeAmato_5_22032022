@@ -40,7 +40,7 @@ async function addMissingDataFromApi(selectedProducts) {
 
 const summaryTable = document.querySelector("#cart__items");
 
-function summaryTableLayout(cartProducts) {
+async function summaryTableLayout(cartProducts) {
   for (let i = 0; i < cartProducts.length; i++) {
 
     let cartProduct = cartProducts[i];
@@ -112,6 +112,75 @@ function summaryTableLayout(cartProducts) {
     deleteCartProduct.setAttribute('class', "deleteItem");
     deleteCartProduct.innerHTML = `Supprimer`;
   }
+  // Buttons with which to interact to change the quantity of a product or delete it from the cart
+  let quantityInputs = document.querySelectorAll(".itemQuantity");
+  let deleteButtons = document.querySelectorAll(".cart__item__content__settings__delete");
+  let editButtons = [quantityInputs, deleteButtons];
+  return editButtons;
+}
+
+
+//================================================================================
+//  Managing the modification or removal of a product in the cart
+//================================================================================
+
+function manageAnyChanges(editButtons) {
+
+  let quantityInputs = editButtons[0];
+  let deleteButtons = editButtons[1];
+
+  let selectedProducts = JSON.parse(localStorage.getItem("cartProducts")) || [];
+
+  //-----------------------------------------
+  //  Managing the modification of a product
+  //-----------------------------------------
+  for (let i = 0; i < quantityInputs.length; i++) {
+
+    // Product data whose quantity changes
+    let currentProduct = quantityInputs[i].closest("article");
+    let currentProductId = currentProduct.dataset.id;
+    let currentProductColor = currentProduct.dataset.color;
+
+    quantityInputs[i].addEventListener('change', function(e) {
+      if (e.target.value <= '0' || !e.target.value) {
+        alert("Veuillez saisir une valeur valide");
+      } else {
+        quantityInputs[i].setAttribute('value', `${e.target.value}`);
+        // Product with updated quantity
+        let updatedProduct = {
+          id : currentProductId,
+          quantity :  parseInt(e.target.value),
+          color : currentProductColor
+        }
+        // Replacing the outdated product with the updated one in the cart
+        const foundIndex = selectedProducts.findIndex(element => element.id == currentProductId && element.color == currentProductColor);
+        selectedProducts.splice(foundIndex, 1, updatedProduct);
+        localStorage.setItem('cartProducts', JSON.stringify(selectedProducts));
+      }
+    });
+  }
+
+  //------------------------------------
+  //  Managing the removal of a product
+  //------------------------------------
+  for (let i = 0; i < deleteButtons.length; i++) {
+
+    // Removed product data
+    let currentProduct = deleteButtons[i].closest("article");
+    let currentProductId = currentProduct.dataset.id;
+    let currentProductColor = currentProduct.dataset.color;
+
+    deleteButtons[i].addEventListener('click', function(e) {
+      const foundIndex = selectedProducts.findIndex(element => element.id == currentProductId && element.color == currentProductColor);
+      selectedProducts.splice(foundIndex, 1);
+      localStorage.setItem('cartProducts', JSON.stringify(selectedProducts));
+      currentProduct.parentElement.removeChild(currentProduct);
+      if (selectedProducts.length == 0) {
+        let mainTitle = document.querySelector("#cartAndFormContainer h1");
+        mainTitle.textContent = "Votre panier est vide";
+      }
+    });
+  }
 }
 
 
@@ -122,6 +191,7 @@ function summaryTableLayout(cartProducts) {
 async function main() {
   let selectedProducts = getDataFromLocalStorage();
   let cartProducts = await addMissingDataFromApi(selectedProducts);
-  summaryTableLayout(cartProducts);
+  let editButtons = await summaryTableLayout(cartProducts);
+  manageAnyChanges(editButtons);
 }
 main();

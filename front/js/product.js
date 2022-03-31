@@ -57,11 +57,11 @@ fetch(`http://localhost:3000/api/products/${productId}`)
 //================================================================================
 
 addToCartButton.addEventListener('click', function() {
-  if (productQuantity.value == '0'){
-    alert("Veuillez indiquer le nombre d'articles")
+  if (productQuantity.value <= '0' || !productQuantity.value) {
+    alert("Veuillez indiquer le nombre d'articles");
   } else {
     if (productColors.value == ''){
-      alert("Veuillez choisir la couleur de l'article")
+      alert("Veuillez choisir la couleur de l'article");
     }
     else {
       let productToPurchase = {
