@@ -22,7 +22,8 @@ async function addMissingDataFromApi(selectedProducts) {
       selectedProducts[i].price = catologueProduct.price;
       selectedProducts[i].imageUrl = catologueProduct.imageUrl;
     }
-    let cartProducts = selectedProducts;
+    localStorage.setItem('cartProducts', JSON.stringify(selectedProducts));
+    let cartProducts = JSON.parse(localStorage.getItem("cartProducts")) || [];
     return cartProducts;
   }
   catch (err) {
@@ -121,15 +122,34 @@ async function summaryTableLayout(cartProducts) {
 
 
 //================================================================================
+//  Calculating the total number of products and the total price
+//================================================================================
+
+function calculateTotal(cartProducts) {
+
+  let totalQuantity = 0;
+  let totalPrice = 0;
+
+  for (let i = 0; i < cartProducts.length; i++) {
+    totalQuantity += cartProducts[i].quantity;
+    totalPrice += cartProducts[i].price * cartProducts[i].quantity;
+  }
+
+  let totalQuantityBox = document.querySelector("#totalQuantity");
+  totalQuantityBox.textContent = `${totalQuantity}`;
+  let totalPriceBox = document.querySelector("#totalPrice");
+  totalPriceBox.textContent = `${totalPrice}`;
+}
+
+
+//================================================================================
 //  Managing the modification or removal of a product in the cart
 //================================================================================
 
-function manageAnyChanges(editButtons) {
+function manageAnyChanges(editButtons, cartProducts) {
 
   let quantityInputs = editButtons[0];
   let deleteButtons = editButtons[1];
-
-  let selectedProducts = JSON.parse(localStorage.getItem("cartProducts")) || [];
 
   //-----------------------------------------
   //  Managing the modification of a product
@@ -142,20 +162,22 @@ function manageAnyChanges(editButtons) {
     let currentProductColor = currentProduct.dataset.color;
 
     quantityInputs[i].addEventListener('change', function(e) {
-      if (e.target.value <= '0' || !e.target.value) {
+      let updatedProductQuantity = e.target.value;
+      if (updatedProductQuantity <= '0' || !updatedProductQuantity) {
         alert("Veuillez saisir une valeur valide");
+        window.location.reload();
       } else {
-        quantityInputs[i].setAttribute('value', `${e.target.value}`);
-        // Product with updated quantity
-        let updatedProduct = {
-          id : currentProductId,
-          quantity :  parseInt(e.target.value),
-          color : currentProductColor
-        }
-        // Replacing the outdated product with the updated one in the cart
-        const foundIndex = selectedProducts.findIndex(element => element.id == currentProductId && element.color == currentProductColor);
-        selectedProducts.splice(foundIndex, 1, updatedProduct);
-        localStorage.setItem('cartProducts', JSON.stringify(selectedProducts));
+        quantityInputs[i].setAttribute('value', `${updatedProductQuantity}`);
+
+        // Step 1: Looking for the index of the product whose quantity changes
+        // Step 2: Changing the updated value of the quantity
+        // Step 3: Updating data in local storage
+        let foundIndex = cartProducts.findIndex(element => element.id == currentProductId && element.color == currentProductColor);
+        cartProducts[foundIndex]['quantity'] = parseInt(updatedProductQuantity);
+        localStorage.setItem('cartProducts', JSON.stringify(cartProducts));
+
+        // Recalculating the total
+        calculateTotal(cartProducts);
       }
     });
   }
@@ -171,14 +193,17 @@ function manageAnyChanges(editButtons) {
     let currentProductColor = currentProduct.dataset.color;
 
     deleteButtons[i].addEventListener('click', function(e) {
-      const foundIndex = selectedProducts.findIndex(element => element.id == currentProductId && element.color == currentProductColor);
-      selectedProducts.splice(foundIndex, 1);
-      localStorage.setItem('cartProducts', JSON.stringify(selectedProducts));
+      const foundIndex = cartProducts.findIndex(element => element.id == currentProductId && element.color == currentProductColor);
+      cartProducts.splice(foundIndex, 1);
+      localStorage.setItem('cartProducts', JSON.stringify(cartProducts));
       currentProduct.parentElement.removeChild(currentProduct);
-      if (selectedProducts.length == 0) {
+      if (cartProducts.length == 0) {
         let mainTitle = document.querySelector("#cartAndFormContainer h1");
         mainTitle.textContent = "Votre panier est vide";
       }
+
+      // Recalculating the total
+      calculateTotal(cartProducts);
     });
   }
 }
@@ -192,6 +217,7 @@ async function main() {
   let selectedProducts = getDataFromLocalStorage();
   let cartProducts = await addMissingDataFromApi(selectedProducts);
   let editButtons = await summaryTableLayout(cartProducts);
-  manageAnyChanges(editButtons);
+  calculateTotal(cartProducts);
+  manageAnyChanges(editButtons, cartProducts);
 }
 main();
