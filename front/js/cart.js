@@ -276,6 +276,7 @@ function checkFormField(formFieldInputValue, formFieldErrorMsg, wordInErrorMsg) 
   return isFieldValid;
 }
 
+
 //--------------------------------------------------
 //  Main process applied for all fields of the form
 //--------------------------------------------------
@@ -343,6 +344,8 @@ orderButton.addEventListener('click', function(e) {
   if (cartProducts.length == 0) {
     alert("Votre panier est vide !");
   } else if (isValidFirstName && isValidLastName && isValidAddress && isValidCity && isValidEmail) {
+
+    // Data to be sent to the server
     let contact = {
       firstName: userFirstNameInput.value,
       lastName: userLastNameInput.value,
@@ -350,9 +353,49 @@ orderButton.addEventListener('click', function(e) {
       city: userCityInput.value,
       email: userEmailInput.value
     }
-    console.log(contact);
-    console.log(cartProducts);
+    let productIds = [];
+    for (let i = 0; i < cartProducts.length; i++) {
+      productIds.push(cartProducts[i].id);
+    }
+    let dataPackage = {
+      contact: contact,
+      products: productIds
+    }
+
+    // Checking if each product ID is a string
+    function areStrings(arrayOfElements) {
+      return arrayOfElements.every(i => (typeof i === "string"));
+    }
+    let areValid = areStrings(productIds);
+
+    // POST Request
+    if (areValid) {
+      postRequest(dataPackage);
+    }
+
   } else {
     alert("Assurez-vous de remplir correctement le formulaire");
   }
 });
+
+// Making a POST request to the API
+async function postRequest(dataPackage) {
+  try {
+    const settings = {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(dataPackage)
+    }
+    const response = await fetch("http://localhost:3000/api/products/order", settings);
+    const responseJson = await response.json();
+    const orderId = responseJson.orderId;
+    localStorage.clear();
+    window.location.href = `confirmation.html?orderId=${orderId}`;
+  } catch (err) {
+    console.log("Oh no! Fetch error: ", err);
+    alert("Oups ! Un problème est survenu. Veuillez revenir plus tard. Toutes nos excuses pour ce désagrément.");
+  }
+}
