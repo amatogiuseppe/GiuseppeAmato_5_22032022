@@ -221,3 +221,138 @@ async function main() {
   manageAnyChanges(editButtons, cartProducts);
 }
 main();
+
+
+//================================================================================
+//  Verifying the data entered on the form is correct
+//================================================================================
+
+//---------------
+//  Data table
+//---------------
+
+//  User data
+const userFirstNameInput = document.querySelector('#firstName');
+const userLastNameInput = document.querySelector('#lastName');
+const userAddressInput = document.querySelector('#address');
+const userCityInput = document.querySelector('#city');
+const userEmailInput = document.querySelector('#email');
+
+//  Error messages
+const userFirstNameErrorMsg = document.querySelector('#firstNameErrorMsg');
+const userLastNameErrorMsg = document.querySelector('#lastNameErrorMsg');
+const userAddressErrorMsg = document.querySelector('#addressErrorMsg');
+const userCityErrorMsg = document.querySelector('#cityErrorMsg');
+const userEmailErrorMsg = document.querySelector('#emailErrorMsg');
+
+// Order Button
+const orderButton = document.querySelector('#order');
+
+//-------------------------------------------
+//  Same verification process for all fields
+//-------------------------------------------
+
+// Checking that each field conforms to the pattern
+function isRegexRespected(inputValue, fieldType) {
+  let re = /^[A-Za-z ]{3,30}$/;
+  if (fieldType == "une adresse e-mail") {
+    re = /^([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$/;
+  }
+  let isValid = true;
+  if (!re.test(inputValue)) {
+    isValid = false;
+  }
+  return isValid;
+}
+
+// Standard function for verifying that each field has been filled in correctly
+function checkFormField(formFieldInputValue, formFieldErrorMsg, wordInErrorMsg) {
+  let isFieldValid = isRegexRespected(formFieldInputValue, wordInErrorMsg);
+  if (isFieldValid == false) {
+    formFieldErrorMsg.textContent = `Veuillez saisir ${wordInErrorMsg} valide`;
+  } else {
+    formFieldErrorMsg.textContent = "";
+  }
+  return isFieldValid;
+}
+
+//--------------------------------------------------
+//  Main process applied for all fields of the form
+//--------------------------------------------------
+
+// Validation functions to determine the validity of each field's contents
+function checkFirstName() {
+  let wordInErrorMsg = "un prénom";
+  let isValidFirstName = checkFormField(userFirstNameInput.value, userFirstNameErrorMsg, wordInErrorMsg);
+  return isValidFirstName;
+}
+function checkLastName() {
+  let wordInErrorMsg = "un nom de famille";
+  let isValidLastName = checkFormField(userLastNameInput.value, userLastNameErrorMsg, wordInErrorMsg);
+  return isValidLastName;
+}
+function checkAddress() {
+  let wordInErrorMsg = "une adresse";
+  let isValidAddress = checkFormField(userAddressInput.value, userAddressErrorMsg, wordInErrorMsg);
+  return isValidAddress;
+}
+function checkCity() {
+  let wordInErrorMsg = "le nom d'une ville";
+  let isValidCity = checkFormField(userCityInput.value, userCityErrorMsg, wordInErrorMsg);
+  return isValidCity;
+}
+function checkEmail() {
+  let wordInErrorMsg = "une adresse e-mail";
+  let isValidEmail = checkFormField(userEmailInput.value, userEmailErrorMsg, wordInErrorMsg);
+  return isValidEmail;
+}
+
+// A quick check to ensure each field is filled in correctly
+userFirstNameInput.addEventListener('change', function(e) {
+  checkFirstName();
+});
+userLastNameInput.addEventListener('change', function(e) {
+  checkLastName();
+});
+userAddressInput.addEventListener('change', function(e) {
+  checkAddress();
+});
+userCityInput.addEventListener('change', function(e) {
+  checkCity();
+});
+userEmailInput.addEventListener('change', function(e) {
+  checkEmail();
+});
+
+//------------------------------
+//  Global verification process
+//------------------------------
+
+// An extensive verification process is conducted before the products order is sent
+orderButton.addEventListener('click', function(e) {
+  e.preventDefault();
+
+  let cartProducts = JSON.parse(localStorage.getItem("cartProducts")) || [];
+
+  let isValidFirstName = checkFirstName();
+  let isValidLastName = checkLastName();
+  let isValidAddress = checkAddress();
+  let isValidCity = checkCity();
+  let isValidEmail = checkEmail();
+
+  if (cartProducts.length == 0) {
+    alert("Votre panier est vide !");
+  } else if (isValidFirstName && isValidLastName && isValidAddress && isValidCity && isValidEmail) {
+    let contact = {
+      firstName: userFirstNameInput.value,
+      lastName: userLastNameInput.value,
+      address: userAddressInput.value,
+      city: userCityInput.value,
+      email: userEmailInput.value
+    }
+    console.log(contact);
+    console.log(cartProducts);
+  } else {
+    alert("Assurez-vous de remplir correctement le formulaire");
+  }
+});
