@@ -115,7 +115,7 @@ async function summaryTableLayout(cartProducts) {
   }
   // Buttons with which to interact to change the quantity of a product or delete it from the cart
   let quantityInputs = document.querySelectorAll(".itemQuantity");
-  let deleteButtons = document.querySelectorAll(".cart__item__content__settings__delete");
+  let deleteButtons = document.querySelectorAll(".deleteItem");
   let editButtons = [quantityInputs, deleteButtons];
   return editButtons;
 }
@@ -197,7 +197,7 @@ function manageAnyChanges(editButtons, cartProducts) {
       // A message is displayed if the user does not enter a valid number
       else if (updatedProductQuantity < '0' || !updatedProductQuantity) {
       alert("Veuillez saisir une valeur valide");
-      window.location.reload();
+      quantityInputs[i].value = `${quantityInputs[i].getAttribute('value')}`;
       }
       // When the inserted number is valid the quantity of the product is updated
       else {

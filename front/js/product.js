@@ -57,37 +57,38 @@ fetch(`http://localhost:3000/api/products/${productId}`)
 //================================================================================
 
 addToCartButton.addEventListener('click', function() {
+
   if (productQuantity.value <= '0' || !productQuantity.value) {
     alert("Veuillez indiquer le nombre d'articles");
-  } else {
-    if (productColors.value == ''){
+    productQuantity.value = "0";
+  } else if (productColors.value == ''){
       alert("Veuillez choisir la couleur de l'article");
+    } else {
+    let productToPurchase = {
+      id : productId,
+      quantity : parseInt(productQuantity.value),
+      color : productColors.value
     }
-    else {
-      let productToPurchase = {
-        id : productId,
-        quantity : parseInt(productQuantity.value),
-        color : productColors.value
-      }
-      // Checking if the product is already in the cart:
-      // in this case, the quantity of the product in the cart should be increased
-      let cartProducts = JSON.parse(localStorage.getItem('cartProducts')) || [];
-      for (i = 0; i < cartProducts.length; i++) {
-        if(cartProducts[i].id == productToPurchase.id && cartProducts[i].color == productToPurchase.color) {
-          productToPurchase.quantity += cartProducts[i].quantity;
-          cartProducts.splice(i, 1);
-          break;
-        }
-      }
+    // Checking if the product is already in the cart: in this case, the quantity of the product in the cart should be increased
+    let cartProducts = JSON.parse(localStorage.getItem('cartProducts')) || [];
+    let foundIndex = cartProducts.findIndex(element => element.id == productToPurchase.id && element.color == productToPurchase.color);
+    if (foundIndex == '-1') {
       cartProducts.push(productToPurchase);
-      localStorage.setItem('cartProducts', JSON.stringify(cartProducts));
-      // Visible notification that the product has been added
-      addToCartButton.textContent = "AJOUTÉ !";
-      addToCartButton.style.backgroundColor = "#28a745";
-      setTimeout(function() {
-        addToCartButton.textContent = "Ajouter au panier";
-        addToCartButton.style.backgroundColor = "#2c3e50";
-      }, 1000);
+    } else {
+      cartProducts[foundIndex]['quantity'] += parseInt(productQuantity.value);
     }
+    localStorage.setItem('cartProducts', JSON.stringify(cartProducts));
+
+    // Visible notification that the product has been added
+    addToCartButton.textContent = "AJOUTÉ !";
+    addToCartButton.style.backgroundColor = "#28a745";
+    setTimeout(function() {
+      addToCartButton.textContent = "Ajouter au panier";
+      addToCartButton.style.backgroundColor = "#2c3e50";
+    }, 2000);
+
+    // Resetting the values after adding the product to the cart
+    productQuantity.value = "0";
+    productColors.selectedIndex = 0;
   }
 });
