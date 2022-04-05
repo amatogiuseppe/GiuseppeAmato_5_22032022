@@ -143,7 +143,7 @@ function calculateTotal(cartProducts) {
 
 
 //================================================================================
-//  Managing the modification or removal of a product in the cart
+//  Managing quantity change or removal of a product in the cart
 //================================================================================
 
 function manageAnyChanges(editButtons, cartProducts) {
@@ -151,59 +151,64 @@ function manageAnyChanges(editButtons, cartProducts) {
   let quantityInputs = editButtons[0];
   let deleteButtons = editButtons[1];
 
-  //-----------------------------------------
-  //  Managing the modification of a product
-  //-----------------------------------------
-  for (let i = 0; i < quantityInputs.length; i++) {
-
-    // Product data whose quantity changes
-    let currentProduct = quantityInputs[i].closest("article");
-    let currentProductId = currentProduct.dataset.id;
-    let currentProductColor = currentProduct.dataset.color;
-
-    quantityInputs[i].addEventListener('change', function(e) {
-      let updatedProductQuantity = e.target.value;
-      if (updatedProductQuantity <= '0' || !updatedProductQuantity) {
-        alert("Veuillez saisir une valeur valide");
-        window.location.reload();
-      } else {
-        quantityInputs[i].setAttribute('value', `${updatedProductQuantity}`);
-
-        // Step 1: Looking for the index of the product whose quantity changes
-        // Step 2: Changing the updated value of the quantity
-        // Step 3: Updating data in local storage
-        let foundIndex = cartProducts.findIndex(element => element.id == currentProductId && element.color == currentProductColor);
-        cartProducts[foundIndex]['quantity'] = parseInt(updatedProductQuantity);
-        localStorage.setItem('cartProducts', JSON.stringify(cartProducts));
-
-        // Recalculating the total
-        calculateTotal(cartProducts);
-      }
-    });
-  }
-
   //------------------------------------
   //  Managing the removal of a product
   //------------------------------------
+
+  // Function to remove a specified product
+  function removeProduct(productToBeRemoved) {
+
+    const foundIndex = cartProducts.findIndex(element => element.id == productToBeRemoved.dataset.id && element.color == productToBeRemoved.dataset.color);
+    cartProducts.splice(foundIndex, 1);
+    localStorage.setItem('cartProducts', JSON.stringify(cartProducts));
+    productToBeRemoved.parentElement.removeChild(productToBeRemoved);
+
+    if (cartProducts.length == 0) {
+      let mainTitle = document.querySelector("#cartAndFormContainer h1");
+      mainTitle.textContent = "Votre panier est vide";
+    }
+
+    calculateTotal(cartProducts);
+  }
+
+  // Clicking the delete button removes the product
   for (let i = 0; i < deleteButtons.length; i++) {
-
-    // Removed product data
     let currentProduct = deleteButtons[i].closest("article");
-    let currentProductId = currentProduct.dataset.id;
-    let currentProductColor = currentProduct.dataset.color;
-
     deleteButtons[i].addEventListener('click', function(e) {
-      const foundIndex = cartProducts.findIndex(element => element.id == currentProductId && element.color == currentProductColor);
-      cartProducts.splice(foundIndex, 1);
-      localStorage.setItem('cartProducts', JSON.stringify(cartProducts));
-      currentProduct.parentElement.removeChild(currentProduct);
-      if (cartProducts.length == 0) {
-        let mainTitle = document.querySelector("#cartAndFormContainer h1");
-        mainTitle.textContent = "Votre panier est vide";
-      }
+      removeProduct(currentProduct);
+    });
+  }
 
-      // Recalculating the total
-      calculateTotal(cartProducts);
+  //----------------------------------------------------
+  //  Managing the modification of the product quantity
+  //----------------------------------------------------
+
+  for (let i = 0; i < quantityInputs.length; i++) {
+
+    let currentProduct = quantityInputs[i].closest("article");
+
+    quantityInputs[i].addEventListener('change', function(e) {
+      let updatedProductQuantity = e.target.value;
+
+      // If the user enters zero, the product will be removed from the cart
+      if (updatedProductQuantity == '0') {
+        removeProduct(currentProduct);
+      }
+      // A message is displayed if the user does not enter a valid number
+      else if (updatedProductQuantity < '0' || !updatedProductQuantity) {
+      alert("Veuillez saisir une valeur valide");
+      window.location.reload();
+      }
+      // When the inserted number is valid the quantity of the product is updated
+      else {
+        quantityInputs[i].setAttribute('value', `${updatedProductQuantity}`);
+
+        let foundIndex = cartProducts.findIndex(element => element.id == currentProduct.dataset.id && element.color == currentProduct.dataset.color);
+        cartProducts[foundIndex]['quantity'] = parseInt(updatedProductQuantity);
+        localStorage.setItem('cartProducts', JSON.stringify(cartProducts));
+
+        calculateTotal(cartProducts);
+      }
     });
   }
 }
