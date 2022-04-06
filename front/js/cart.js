@@ -2,8 +2,8 @@
 //  Retrieving data of cart products
 //================================================================================
 
-// Getting data of cart products from the local storage: id, quantity, color
-function getDataFromLocalStorage() {
+// Gathering data about the selected products from the local storage: id, quantity, color
+function manageSelectedProducts() {
   let selectedProducts = JSON.parse(localStorage.getItem("cartProducts")) || [];
   if (selectedProducts.length == 0) {
     let mainTitle = document.querySelector("#cartAndFormContainer h1");
@@ -13,25 +13,45 @@ function getDataFromLocalStorage() {
 }
 
 // Fetching and adding the missing data from the API: name, price, imageUrl
+let fetchProblem = false;
 async function addMissingDataFromApi(selectedProducts) {
-  try {
-    for (let i = 0; i < selectedProducts.length; i++) {
-      let response = await fetch(`http://localhost:3000/api/products/${selectedProducts[i].id}`);
-      let catologueProduct = await response.json();
-      selectedProducts[i].name = catologueProduct.name;
-      selectedProducts[i].price = catologueProduct.price;
-      selectedProducts[i].imageUrl = catologueProduct.imageUrl;
-    }
-    localStorage.setItem('cartProducts', JSON.stringify(selectedProducts));
-    let cartProducts = JSON.parse(localStorage.getItem("cartProducts")) || [];
-    return cartProducts;
+
+  let promises = [];
+  let errors = [];
+
+  for (let i = 0; i < selectedProducts.length; i++) {
+    promises.push(
+      fetch(`http://localhost:3000/api/products/${selectedProducts[i].id}`)
+        .then(function(response) {
+          if (response.ok) {
+            return response.json();
+          }
+        })
+        .then(function(catologueProduct) {
+          selectedProducts[i].name = catologueProduct.name;
+          selectedProducts[i].price = catologueProduct.price;
+          selectedProducts[i].imageUrl = catologueProduct.imageUrl;
+        })
+        .catch(function(error) {
+          errors.push(error);
+      })
+    );
   }
-  catch (err) {
-    console.log("Oh no! Fetch error: ", err);
+  await Promise.all(promises);
+
+  localStorage.setItem('cartProducts', JSON.stringify(selectedProducts));
+  let cartProducts = JSON.parse(localStorage.getItem("cartProducts")) || [];
+
+  // Error management
+  if (errors.length != 0) {
+    console.log("Oh no! Fetch errors: ", errors);
     alert("Oups ! Un problème est survenu. Veuillez revenir plus tard. Toutes nos excuses pour ce désagrément.");
     let mainTitle = document.querySelector("#cartAndFormContainer h1");
     mainTitle.textContent = "Votre panier est actuellement indisponible";
+    fetchProblem = true;
   }
+
+  return cartProducts;
 }
 
 
@@ -42,6 +62,11 @@ async function addMissingDataFromApi(selectedProducts) {
 const summaryTable = document.querySelector("#cart__items");
 
 async function summaryTableLayout(cartProducts) {
+
+  if (fetchProblem) {
+    cartProducts = [];
+  }
+
   for (let i = 0; i < cartProducts.length; i++) {
 
     let cartProduct = cartProducts[i];
@@ -130,9 +155,11 @@ function calculateTotal(cartProducts) {
   let totalQuantity = 0;
   let totalPrice = 0;
 
-  for (let i = 0; i < cartProducts.length; i++) {
-    totalQuantity += cartProducts[i].quantity;
-    totalPrice += cartProducts[i].price * cartProducts[i].quantity;
+  if (fetchProblem == false) {
+    for (let i = 0; i < cartProducts.length; i++) {
+      totalQuantity += cartProducts[i].quantity;
+      totalPrice += cartProducts[i].price * cartProducts[i].quantity;
+    }
   }
 
   let totalQuantityBox = document.querySelector("#totalQuantity");
@@ -219,7 +246,7 @@ function manageAnyChanges(editButtons, cartProducts) {
 //================================================================================
 
 async function main() {
-  let selectedProducts = getDataFromLocalStorage();
+  let selectedProducts = manageSelectedProducts();
   let cartProducts = await addMissingDataFromApi(selectedProducts);
   let editButtons = await summaryTableLayout(cartProducts);
   calculateTotal(cartProducts);
@@ -339,47 +366,55 @@ orderButton.addEventListener('click', function(e) {
   e.preventDefault();
 
   let cartProducts = JSON.parse(localStorage.getItem("cartProducts")) || [];
-
-  let isValidFirstName = checkFirstName();
-  let isValidLastName = checkLastName();
-  let isValidAddress = checkAddress();
-  let isValidCity = checkCity();
-  let isValidEmail = checkEmail();
+  if (fetchProblem) {
+    cartProducts = [];
+  }
 
   if (cartProducts.length == 0) {
-    alert("Votre panier est vide !");
-  } else if (isValidFirstName && isValidLastName && isValidAddress && isValidCity && isValidEmail) {
 
-    // Data to be sent to the server
-    let contact = {
+    alert("Votre panier est vide !");
+
+  } else {
+
+    let isValidFirstName = checkFirstName();
+    let isValidLastName = checkLastName();
+    let isValidAddress = checkAddress();
+    let isValidCity = checkCity();
+    let isValidEmail = checkEmail();
+
+    if (isValidFirstName && isValidLastName && isValidAddress && isValidCity && isValidEmail) {
+
+      // Data to be sent to the server
+      let contact = {
       firstName: userFirstNameInput.value,
       lastName: userLastNameInput.value,
       address: userAddressInput.value,
       city: userCityInput.value,
       email: userEmailInput.value
-    }
-    let productIds = [];
-    for (let i = 0; i < cartProducts.length; i++) {
-      productIds.push(cartProducts[i].id);
-    }
-    let dataPackage = {
-      contact: contact,
-      products: productIds
-    }
+      }
+      let productIds = [];
+      for (let i = 0; i < cartProducts.length; i++) {
+        productIds.push(cartProducts[i].id);
+      }
+      let dataPackage = {
+        contact: contact,
+        products: productIds
+      }
 
-    // Checking if each product ID is a string
-    function areStrings(arrayOfElements) {
-      return arrayOfElements.every(i => (typeof i === "string"));
-    }
-    let areValid = areStrings(productIds);
+      // Checking if each product ID is a string
+      function areStrings(arrayOfElements) {
+        return arrayOfElements.every(i => (typeof i === "string"));
+      }
+      let areValid = areStrings(productIds);
 
-    // POST Request
-    if (areValid) {
-      postRequest(dataPackage);
-    }
+      // POST Request
+      if (areValid) {
+        postRequest(dataPackage);
+      }
 
-  } else {
-    alert("Assurez-vous de remplir correctement le formulaire");
+    } else {
+      alert("Assurez-vous de remplir correctement le formulaire");
+    }
   }
 });
 
