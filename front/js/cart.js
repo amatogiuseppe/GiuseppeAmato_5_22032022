@@ -282,27 +282,31 @@ const orderButton = document.querySelector('#order');
 //  Same verification process for all fields
 //-------------------------------------------
 
-// Checking that each field conforms to the pattern
-function isRegexRespected(inputValue, fieldType) {
-  let re = /^[A-Za-z ]{3,30}$/;
-  if (fieldType == "une adresse e-mail") {
-    re = /^([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$/;
-  }
-  let isValid = true;
-  if (!re.test(inputValue)) {
-    isValid = false;
-  }
-  return isValid;
-}
-
 // Standard function for verifying that each field has been filled in correctly
 function checkFormField(formFieldInputValue, formFieldErrorMsg, wordInErrorMsg) {
-  let isFieldValid = isRegexRespected(formFieldInputValue, wordInErrorMsg);
+
+  // Applying the appropriate pattern
+  let re = /^[A-Za-z ]{3,30}$/;
+  if (wordInErrorMsg == "une adresse e-mail") {
+    re = /^([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$/;
+  }
+  if (wordInErrorMsg == "une adresse") {
+    re = /^([0-9]{1,5})\s([A-Za-z ]{5,30})$/;
+  }
+
+  // Making sure the pattern is respected
+  let isFieldValid = re.test(formFieldInputValue);
+
+  // Checking results
   if (isFieldValid == false) {
-    formFieldErrorMsg.textContent = `Veuillez saisir ${wordInErrorMsg} valide`;
+    formFieldErrorMsg.textContent = `Veuillez saisir ${wordInErrorMsg} valide.`;
+    if (wordInErrorMsg == "une adresse") {
+      formFieldErrorMsg.textContent += " Exemple: 10 quai de la charente";
+    }
   } else {
     formFieldErrorMsg.textContent = "";
   }
+
   return isFieldValid;
 }
 
@@ -363,7 +367,7 @@ userEmailInput.addEventListener('change', function(e) {
 orderButton.addEventListener('click', function(e) {
   e.preventDefault();
 
-  if (cartProductsInfo.length == 0) {
+  if (cartProductsInfo.length == 0 && cartProducts != 0) {
     alert("La commande a échoué. Votre panier est actuellement indisponible.");
   } else if (cartProducts.length == 0) {
     alert("Votre panier est vide !");
@@ -394,15 +398,12 @@ orderButton.addEventListener('click', function(e) {
         products: productIds
       }
 
-      // Checking if each product ID is a string
-      function areStrings(arrayOfElements) {
-        return arrayOfElements.every(i => (typeof i === "string"));
-      }
-      let areValid = areStrings(productIds);
+      // Checking if each product ID is a string (if local storage is tampered with, the order will not be sent)
+      let areValidProductIds = productIds.every(i => (typeof i === "string" && i.length > 0));
 
-      // POST Request
-      if (areValid) {
-        postRequest(dataPackage);
+      // Once all data has been verified, an order can be placed
+      if (areValidProductIds) {
+        placeOrder(dataPackage);
       }
 
     } else {
@@ -411,8 +412,13 @@ orderButton.addEventListener('click', function(e) {
   }
 });
 
-// Making a POST request to the API
-async function postRequest(dataPackage) {
+
+//================================================================================
+//  Placement of user order
+//================================================================================
+
+// Sending a POST request to the API to retrieve the order ID and being directed to the confirmation page
+async function placeOrder(dataPackage) {
   try {
     const settings = {
       method: 'POST',
@@ -425,9 +431,11 @@ async function postRequest(dataPackage) {
     const response = await fetch("http://localhost:3000/api/products/order", settings);
     const responseJson = await response.json();
     const orderId = responseJson.orderId;
+
     localStorage.clear();
     window.location.href = `confirmation.html?orderId=${orderId}`;
-  } catch (err) {
+  }
+  catch (err) {
     console.log("Oh no! Fetch error: ", err);
     alert("Oups ! Un problème est survenu. Veuillez revenir plus tard. Toutes nos excuses pour ce désagrément.");
   }
