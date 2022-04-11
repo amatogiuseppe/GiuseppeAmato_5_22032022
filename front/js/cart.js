@@ -17,7 +17,9 @@ let cartProductsInfo = [];
 //  Collecting the name, price and imageUrl of each single product in the cart
 //================================================================================
 
-// Fetching the missing data for each product in the cart
+/**
+ * Fetching the missing data for each product in the cart
+ */
 async function collectMissingData() {
 
   let promises = [];
@@ -63,7 +65,11 @@ async function collectMissingData() {
 
 const summaryTable = document.querySelector("#cart__items");
 
-// Creating and setting up the layout of the cart's product summary table using the collected data
+/**
+ * Creating and setting up the layout of the cart's product summary table using the collected data
+ * @param {*} cartProductsInfo An array that collects the name, price and imageUrl for each product
+ * @returns the input and the button (for each product) with which to interact to change the quantity of a product or suppress it
+ */
 function summaryTableLayout(cartProductsInfo) {
 
   for (let i = 0; i < cartProducts.length; i++) {
@@ -152,7 +158,10 @@ function summaryTableLayout(cartProductsInfo) {
 //  Calculating the total number of products and the total price
 //================================================================================
 
-// How to calculate the number and price of all products
+/**
+ * // How to calculate the number and price of all products
+ * @param {*} cartProductsInfo An array that collects the name, price and imageUrl for each product
+ */
 function calculateTotal(cartProductsInfo) {
 
   let totalQuantity = 0;
@@ -175,7 +184,10 @@ function calculateTotal(cartProductsInfo) {
 //  Managing quantity change or removal of a product in the cart
 //================================================================================
 
-// Main function for managing changes in the summary table of the cart
+/**
+ * Main function for managing changes in the summary table of the cart
+ * @param {*} editButtons the input and the button (for each product) with which to interact to change the quantity of a product or suppress it
+ */
 function manageAnyChanges(editButtons) {
 
   let quantityInputs = editButtons[0];
@@ -185,7 +197,10 @@ function manageAnyChanges(editButtons) {
   //  Managing the removal of a product
   //------------------------------------
 
-  // Function to remove a specified product
+  /**
+   * Function to remove a specified product
+   * @param {*} productToBeRemoved product that the user wants to remove
+   */
   function removeProduct(productToBeRemoved) {
 
     let foundIndex = cartProducts.findIndex(element => element.id == productToBeRemoved.dataset.id && element.color == productToBeRemoved.dataset.color);
@@ -288,7 +303,13 @@ const orderButton = document.querySelector('#order');
 //  Same verification process for all fields
 //-------------------------------------------
 
-// Standard function for verifying that each field has been filled in correctly
+/**
+ * Standard function for verifying that each field has been filled in correctly
+ * @param {*} formFieldInputValue text entered by the user in the form field
+ * @param {*} formFieldErrorMsg error message if what the user has entered does not respect the format of the field
+ * @param {*} wordInErrorMsg word present in the error message and that represents the name of the specific field
+ * @returns boolean value to indicate if the field has been filled correctly
+ */
 function checkFormField(formFieldInputValue, formFieldErrorMsg, wordInErrorMsg) {
 
   // Applying the appropriate pattern
@@ -297,7 +318,7 @@ function checkFormField(formFieldInputValue, formFieldErrorMsg, wordInErrorMsg) 
     re = /^([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$/;
   }
   if (wordInErrorMsg == "une adresse") {
-    re = /^([0-9]{1,5})\s([A-Za-z ]{5,30})$/;
+    re = /^([0-9]{1,5})\s([A-Za-z ]{3,30})$/;
   }
 
   // Making sure the pattern is respected
@@ -306,42 +327,67 @@ function checkFormField(formFieldInputValue, formFieldErrorMsg, wordInErrorMsg) 
   // Checking results
   if (isFieldValid == false) {
     formFieldErrorMsg.textContent = `Veuillez saisir ${wordInErrorMsg} valide.`;
-    if (wordInErrorMsg == "une adresse") {
-      formFieldErrorMsg.textContent += " Exemple: 10 quai de la charente";
+    switch (wordInErrorMsg) {
+      case "une adresse":
+        formFieldErrorMsg.textContent += " Respectez ce format : 10 quai de la charente";
+      break;
+      case 'une adresse e-mail':
+        formFieldErrorMsg.textContent += " Respectez ce format : abc@def.gh";
+      break;
+      default:
+        formFieldErrorMsg.textContent += " Utilisez uniquement des lettres et au moins 3 caractères.";
     }
   } else {
     formFieldErrorMsg.textContent = "";
   }
-
   return isFieldValid;
 }
 
 
-//--------------------------------------------------
-//  Main process applied for all fields of the form
-//--------------------------------------------------
+//------------------------------------------------------
+//  Main validation process applied for all form fields
+//------------------------------------------------------
 
-// Validation functions to determine the validity of each field's contents
+/**
+ * function to determine if the "Prénom" field has been filled in correctly
+ * @returns if "true" the field has been filled correctly
+ */
 function checkFirstName() {
   let wordInErrorMsg = "un prénom";
   let isValidFirstName = checkFormField(userFirstNameInput.value, userFirstNameErrorMsg, wordInErrorMsg);
   return isValidFirstName;
 }
+/**
+ * function to determine if the "Nom" field has been filled in correctly
+ * @returns if "true" the field has been filled correctly
+ */
 function checkLastName() {
   let wordInErrorMsg = "un nom de famille";
   let isValidLastName = checkFormField(userLastNameInput.value, userLastNameErrorMsg, wordInErrorMsg);
   return isValidLastName;
 }
+/**
+ * function to determine if the "Adresse" field has been filled in correctly
+ * @returns if "true" the field has been filled correctly
+ */
 function checkAddress() {
   let wordInErrorMsg = "une adresse";
   let isValidAddress = checkFormField(userAddressInput.value, userAddressErrorMsg, wordInErrorMsg);
   return isValidAddress;
 }
+/**
+ * function to determine if the "Ville" field has been filled in correctly
+ * @returns if "true" the field has been filled correctly
+ */
 function checkCity() {
   let wordInErrorMsg = "le nom d'une ville";
   let isValidCity = checkFormField(userCityInput.value, userCityErrorMsg, wordInErrorMsg);
   return isValidCity;
 }
+/**
+ * function to determine if the "Email" field has been filled in correctly
+ * @returns if "true" the field has been filled correctly
+ */
 function checkEmail() {
   let wordInErrorMsg = "une adresse e-mail";
   let isValidEmail = checkFormField(userEmailInput.value, userEmailErrorMsg, wordInErrorMsg);
@@ -423,7 +469,10 @@ orderButton.addEventListener('click', function(e) {
 //  Placement of user order
 //================================================================================
 
-// Sending a POST request to the API to retrieve the order ID and being directed to the confirmation page
+/**
+ * Sending a POST request to the API to retrieve the order ID and being directed to the confirmation page
+ * @param {*} dataPackage data package containing user information and cart product ids
+ */
 async function placeOrder(dataPackage) {
   try {
     const settings = {

@@ -25,7 +25,10 @@ function init() {
     });
 }
 
-// Making all products of the catalog viewable
+/**
+ * Making all products of the catalog viewable
+ * @param {*} productCatalogue list of all products
+ */
 function displayAllProducts(productCatalogue) {
   for (i = 0; i < productCatalogue.length; i++) {
     let currentProduct = productCatalogue[i];
@@ -33,7 +36,10 @@ function displayAllProducts(productCatalogue) {
   }
 }
 
-// Making a single product viewable
+/**
+ * Making a single product viewable
+ * @param {*} currentProduct single product
+ */
 function displayProductItem(currentProduct) {
 
   const productsSection = document.querySelector("#items");

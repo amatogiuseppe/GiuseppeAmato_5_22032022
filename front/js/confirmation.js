@@ -1,6 +1,6 @@
-//================================================================================
-//  // Retrieving the order ID in the URL to make it viewable in the appropriate section of the page
-//================================================================================
+//================================================================================================
+//  Retrieving the order ID in the URL to make it viewable in the appropriate section of the page
+//================================================================================================
 
 const orderURL = new URLSearchParams(window.location.search);
 const orderId = orderURL.get("orderId");

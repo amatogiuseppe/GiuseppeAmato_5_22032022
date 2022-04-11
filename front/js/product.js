@@ -36,7 +36,10 @@ fetch(`http://localhost:3000/api/products/${productId}`)
     productTitle.textContent = "Produit non disponible";
   });
 
-// Making product details viewable
+/**
+ * Making product details viewable
+ * @param {*} productInfo all product information
+ */
 function displayProduct(productInfo) {
 
   // Creating and setting up the product image
@@ -57,7 +60,10 @@ function displayProduct(productInfo) {
   }
 }
 
-// Making product color options viewable
+/**
+ * Making product color options viewable
+ * @param {*} currentColor color available to be selected eventually
+ */
 function displayColors(currentColor) {
   const colorOption = document.createElement("option");
   productColors.appendChild(colorOption);
@@ -72,8 +78,8 @@ function displayColors(currentColor) {
 
 // Checking the values entered when the user wishes to add the product to the cart
 addToCartButton.addEventListener('click', function() {
-  if (productQuantity.value <= '0' || !productQuantity.value) {
-    alert("Veuillez indiquer le nombre d'articles");
+  if (productQuantity.value <= '0' || !productQuantity.value || productQuantity.value > 100) {
+    alert("Veuillez indiquer un nombre valide d'articles entre 1 et 100.");
     productQuantity.value = "0";
   } else if (productColors.value == ''){
       alert("Veuillez choisir la couleur de l'article");
@@ -82,7 +88,9 @@ addToCartButton.addEventListener('click', function() {
   }
 });
 
-// Function to add the product to the cart
+/**
+ * Function to add the product to the cart
+ */
 function addProductToCart() {
   // Product to be purchased
   let productToPurchase = {
@@ -129,7 +137,9 @@ notificationBox.style.color = "#fff";
 notificationBox.style.fontSize = "36px";
 notificationBox.style.fontWeight = "bold";
 
-// Making visible the confirmation message for having added the product to the cart
+/**
+ * Making visible the confirmation message for having added the product to the cart
+ */
 function notifyProductAdded() {
   addToCartButton.style.visibility = "hidden";
   notificationBox.style.visibility = "visible";
@@ -139,7 +149,9 @@ function notifyProductAdded() {
   }, 2000);
 }
 
-// Resetting the values after adding the product to the cart
+/**
+ * Resetting the values after adding the product to the cart
+ */
 function resetUserValues() {
   productQuantity.value = "0";
   productColors.selectedIndex = 0;
