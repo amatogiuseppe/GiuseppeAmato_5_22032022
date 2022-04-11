@@ -17,6 +17,7 @@ let cartProductsInfo = [];
 //  Collecting the name, price and imageUrl of each single product in the cart
 //================================================================================
 
+// Fetching the missing data for each product in the cart
 async function collectMissingData() {
 
   let promises = [];
@@ -62,6 +63,7 @@ async function collectMissingData() {
 
 const summaryTable = document.querySelector("#cart__items");
 
+// Creating and setting up the layout of the cart's product summary table using the collected data
 function summaryTableLayout(cartProductsInfo) {
 
   for (let i = 0; i < cartProducts.length; i++) {
@@ -150,6 +152,7 @@ function summaryTableLayout(cartProductsInfo) {
 //  Calculating the total number of products and the total price
 //================================================================================
 
+// How to calculate the number and price of all products
 function calculateTotal(cartProductsInfo) {
 
   let totalQuantity = 0;
@@ -172,6 +175,7 @@ function calculateTotal(cartProductsInfo) {
 //  Managing quantity change or removal of a product in the cart
 //================================================================================
 
+// Main function for managing changes in the summary table of the cart
 function manageAnyChanges(editButtons) {
 
   let quantityInputs = editButtons[0];
@@ -213,6 +217,7 @@ function manageAnyChanges(editButtons) {
 
     let currentProduct = quantityInputs[i].closest("article");
 
+    // Reacting to a change in product quantity
     quantityInputs[i].addEventListener('change', function(e) {
       let updatedProductQuantity = e.target.value;
 
@@ -221,9 +226,9 @@ function manageAnyChanges(editButtons) {
         removeProduct(currentProduct);
       }
       // A message is displayed if the user does not enter a valid number
-      else if (updatedProductQuantity < '0' || !updatedProductQuantity) {
-      alert("Veuillez saisir une valeur valide");
-      quantityInputs[i].value = `${quantityInputs[i].getAttribute('value')}`;
+      else if (updatedProductQuantity < '0' || !updatedProductQuantity || updatedProductQuantity > 100) {
+        alert("Veuillez saisir un nombre de 1 à 100");
+        quantityInputs[i].value = `${quantityInputs[i].getAttribute('value')}`;
       }
       // When the inserted number is valid the quantity of the product is updated
       else {
@@ -244,6 +249,7 @@ function manageAnyChanges(editButtons) {
 //  Viewing of the summary table of the products in the cart page
 //================================================================================
 
+// Main function that allows the visualization of the products in the cart and manages the eventual changes
 async function main() {
   await collectMissingData();
   let editButtons = summaryTableLayout(cartProductsInfo);
