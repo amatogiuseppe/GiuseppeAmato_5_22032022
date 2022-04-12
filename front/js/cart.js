@@ -14,6 +14,23 @@ let cartProductsInfo = [];
 
 
 //================================================================================
+//  Viewing of the summary table of the products in the cart page
+//================================================================================
+
+initCartPage();
+
+/**
+ * Main function that allows the visualization of the products in the cart and manages the eventual changes
+ */
+async function initCartPage() {
+  await collectMissingData();
+  let editButtons = summaryTableLayout(cartProductsInfo);
+  calculateTotal(cartProductsInfo);
+  manageAnyChanges(editButtons);
+}
+
+
+//================================================================================
 //  Collecting the name, price and imageUrl of each single product in the cart
 //================================================================================
 
@@ -258,20 +275,6 @@ function manageAnyChanges(editButtons) {
     });
   }
 }
-
-
-//================================================================================
-//  Viewing of the summary table of the products in the cart page
-//================================================================================
-
-// Main function that allows the visualization of the products in the cart and manages the eventual changes
-async function main() {
-  await collectMissingData();
-  let editButtons = summaryTableLayout(cartProductsInfo);
-  calculateTotal(cartProductsInfo);
-  manageAnyChanges(editButtons);
-}
-main();
 
 
 //================================================================================

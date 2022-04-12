@@ -2,10 +2,12 @@
 //  Inserting the product catalogue
 //========================================
 
-init();
+initHomePage();
 
-// Main function: retrieving data from API and displaying product catalogue
-function init() {
+/**
+ * Main function: retrieving data from API and displaying product catalogue
+ */
+function initHomePage() {
   fetch("http://localhost:3000/api/products")
     .then(function(res) {
       if (res.ok) {

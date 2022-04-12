@@ -20,21 +20,27 @@ const boxButton = document.querySelector(".item__content__addButton");
 const productURL = new URLSearchParams(window.location.search);
 const productId = productURL.get("id");
 
-// Fetching product information from the API
-fetch(`http://localhost:3000/api/products/${productId}`)
-  .then(function(res) {
-    if (res.ok) {
-      return res.json();
-    }
-  })
-  .then(function(productInfo) {
-    displayProduct(productInfo);
-  })
-  .catch(function(err) {
-    console.log("Oh no! Fetch error: ", err);
-    alert("Oups ! Veuillez nous excuser mais ce produit n'est pas disponible actuellement");
-    productTitle.textContent = "Produit non disponible";
-  });
+initProductPage();
+
+/**
+ * Fetching product information from the API
+ */
+function initProductPage() {
+  fetch(`http://localhost:3000/api/products/${productId}`)
+    .then(function(res) {
+      if (res.ok) {
+        return res.json();
+      }
+    })
+    .then(function(productInfo) {
+      displayProduct(productInfo);
+    })
+    .catch(function(err) {
+      console.log("Oh no! Fetch error: ", err);
+      alert("Oups ! Veuillez nous excuser mais ce produit n'est pas disponible actuellement");
+      productTitle.textContent = "Produit non disponible";
+    });
+}
 
 /**
  * Making product details viewable
