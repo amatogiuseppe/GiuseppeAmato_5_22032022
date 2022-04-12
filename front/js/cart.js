@@ -9,8 +9,8 @@ if (cartProducts.length == 0) {
   mainTitle.textContent = "Votre panier est vide";
 }
 
-// A container that will collect all the other missing data: name, price and imageUrl
-let cartProductsInfo = [];
+// Container that will collect the product catalogue for consultation when needed
+let productCatalogueInfo = [];
 
 
 //================================================================================
@@ -23,52 +23,27 @@ initCartPage();
  * Main function that allows the visualization of the products in the cart and manages the eventual changes
  */
 async function initCartPage() {
-  await collectMissingData();
-  let editButtons = summaryTableLayout(cartProductsInfo);
-  calculateTotal(cartProductsInfo);
+  await fetchesCatalogueInfo();
+  let editButtons = summaryTableLayout(productCatalogueInfo);
+  calculateTotal(productCatalogueInfo);
   manageAnyChanges(editButtons);
 }
 
 
 //================================================================================
-//  Collecting the name, price and imageUrl of each single product in the cart
+//  Retrieving the product catalogue
 //================================================================================
 
 /**
- * Fetching the missing data for each product in the cart
+ * A function that retrieves the product catalogue for consultation when needed
  */
-async function collectMissingData() {
-
-  let promises = [];
-  let errors = [];
-
-  for (let i = 0; i < cartProducts.length; i++) {
-    promises.push(
-      fetch(`http://localhost:3000/api/products/${cartProducts[i].id}`)
-        .then(function(response) {
-          if (response.ok) {
-            return response.json();
-          }
-        })
-        .then(function(catologueProduct) {
-          let singleProduct = {};
-          singleProduct.id = cartProducts[i].id;
-          // Adding information that is missing
-          singleProduct.name = catologueProduct.name;
-          singleProduct.price = catologueProduct.price;
-          singleProduct.imageUrl = catologueProduct.imageUrl;
-          cartProductsInfo.push(singleProduct);
-        })
-        .catch(function(error) {
-          errors.push(error);
-      })
-    );
+async function fetchesCatalogueInfo() {
+  try {
+    let response = await fetch("http://localhost:3000/api/products");
+    productCatalogueInfo = await response.json();
   }
-  await Promise.all(promises);
-
-  // Error warning
-  if (errors.length != 0) {
-    console.log("Oh no! Fetch errors: ", errors);
+  catch (err) {
+    console.log("Oh no! Fetch error: ", err);
     alert("Oups ! Un problème est survenu. Veuillez revenir plus tard. Toutes nos excuses pour ce désagrément.");
     let mainTitle = document.querySelector("#cartAndFormContainer h1");
     mainTitle.textContent = "Votre panier est actuellement indisponible";
@@ -84,14 +59,14 @@ const summaryTable = document.querySelector("#cart__items");
 
 /**
  * Creating and setting up the layout of the cart's product summary table using the collected data
- * @param {*} cartProductsInfo An array that collects the name, price and imageUrl for each product
+ * @param {*} productCatalogueInfo information from the product catalogue
  * @returns the input and the button (for each product) with which to interact to change the quantity of a product or suppress it
  */
-function summaryTableLayout(cartProductsInfo) {
+function summaryTableLayout(productCatalogueInfo) {
 
   for (let i = 0; i < cartProducts.length; i++) {
 
-    let foundIndex = cartProductsInfo.findIndex(element => element.id == cartProducts[i].id);
+    let foundIndex = productCatalogueInfo.findIndex(element => element._id == cartProducts[i].id);
 
     // Creating and setting up the cart Product
     const cartProductReport = document.createElement("article");
@@ -106,7 +81,7 @@ function summaryTableLayout(cartProductsInfo) {
     cartProductImageBox.setAttribute('class', "cart__item__img");
     const cartProductImage = document.createElement("img");
     cartProductImageBox.appendChild(cartProductImage);
-    cartProductImage.setAttribute('src', `${cartProductsInfo[foundIndex].imageUrl}`);  // Product Image
+    cartProductImage.setAttribute('src', `${productCatalogueInfo[foundIndex].imageUrl}`);  // Product Image
     cartProductImage.setAttribute('alt', "Photographie d'un canapé");
 
     // Creating and setting up the cart product content
@@ -122,13 +97,13 @@ function summaryTableLayout(cartProductsInfo) {
     // Creating and setting up the product name, product color and product price
     const cartProductName = document.createElement("h2");
     cartProductDescription.appendChild(cartProductName);
-    cartProductName.innerHTML = `${cartProductsInfo[foundIndex].name}`;  // Product Name
+    cartProductName.innerHTML = `${productCatalogueInfo[foundIndex].name}`;  // Product Name
     const cartProductColor = document.createElement("p");
     cartProductDescription.appendChild(cartProductColor);
     cartProductColor.innerHTML = `${cartProducts[i].color}`;  // Product Color
     const cartProductPrice = document.createElement("p");
     cartProductDescription.appendChild(cartProductPrice);
-    cartProductPrice.innerHTML = `${cartProductsInfo[foundIndex].price} &euro;`;  // Product Price
+    cartProductPrice.innerHTML = `${productCatalogueInfo[foundIndex].price} &euro;`;  // Product Price
 
     // Creating and setting up the cart product settings
     const cartProductSettings = document.createElement("div");
@@ -176,18 +151,18 @@ function summaryTableLayout(cartProductsInfo) {
 //================================================================================
 
 /**
- * // How to calculate the number and price of all products
- * @param {*} cartProductsInfo An array that collects the name, price and imageUrl for each product
+ * How to calculate the number and price of all products
+ * @param {*} productCatalogueInfo information from the product catalogue
  */
-function calculateTotal(cartProductsInfo) {
+function calculateTotal(productCatalogueInfo) {
 
   let totalQuantity = 0;
   let totalPrice = 0;
 
   for (let i = 0; i < cartProducts.length; i++) {
-    let foundIndex = cartProductsInfo.findIndex(element => element.id == cartProducts[i].id);
+    let foundIndex = productCatalogueInfo.findIndex(element => element._id == cartProducts[i].id);
     totalQuantity += cartProducts[i].quantity;
-    totalPrice += cartProductsInfo[foundIndex].price * cartProducts[i].quantity;
+    totalPrice += productCatalogueInfo[foundIndex].price * cartProducts[i].quantity;
   }
 
   let totalQuantityBox = document.querySelector("#totalQuantity");
@@ -230,7 +205,7 @@ function manageAnyChanges(editButtons) {
       mainTitle.textContent = "Votre panier est vide";
     }
 
-    calculateTotal(cartProductsInfo);
+    calculateTotal(productCatalogueInfo);
   }
 
   /**
@@ -281,7 +256,7 @@ function manageAnyChanges(editButtons) {
         cartProducts[foundIndex]['quantity'] = parseInt(updatedProductQuantity);
         localStorage.setItem('cartProducts', JSON.stringify(cartProducts));
 
-        calculateTotal(cartProductsInfo);
+        calculateTotal(productCatalogueInfo);
       }
     });
   }
@@ -433,7 +408,7 @@ userEmailInput.addEventListener('change', function(e) {
 orderButton.addEventListener('click', function(e) {
   e.preventDefault();
 
-  if (cartProductsInfo.length == 0 && cartProducts != 0) {
+  if (productCatalogueInfo.length == 0 && cartProducts != 0) {
     alert("La commande a échoué. Votre panier est actuellement indisponible.");
   } else if (cartProducts.length == 0) {
     alert("Votre panier est vide !");
