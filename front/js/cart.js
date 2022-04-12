@@ -233,11 +233,22 @@ function manageAnyChanges(editButtons) {
     calculateTotal(cartProductsInfo);
   }
 
-  // Clicking the delete button removes the product
+  /**
+   * The function asks the user if he is sure to remove the product from the cart. If he is sure, the product is removed
+   * @param {*} currentProduct cart product undergoing removal verification
+   */
+  function askBeforeDeleting(currentProduct) {
+    let isSure = confirm("Êtes-vous sûr de vouloir retirer ce produit de votre panier ?");
+    if (isSure) {
+      removeProduct(currentProduct);
+    }
+  }
+
+  // Clicking on the delete button the product will be removed from the cart in case of user confirmation
   for (let i = 0; i < deleteButtons.length; i++) {
     let currentProduct = deleteButtons[i].closest("article");
     deleteButtons[i].addEventListener('click', function(e) {
-      removeProduct(currentProduct);
+      askBeforeDeleting(currentProduct);
     });
   }
 
@@ -253,9 +264,9 @@ function manageAnyChanges(editButtons) {
     quantityInputs[i].addEventListener('change', function(e) {
       let updatedProductQuantity = e.target.value;
 
-      // If the user enters zero, the product will be removed from the cart
+      // If the user enters zero, the product will be removed from the cart upon user confirmation
       if (updatedProductQuantity == '0') {
-        removeProduct(currentProduct);
+        askBeforeDeleting(currentProduct);
       }
       // A message is displayed if the user does not enter a valid number
       else if (updatedProductQuantity < '0' || !updatedProductQuantity || updatedProductQuantity > 100) {
